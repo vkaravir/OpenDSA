@@ -37,7 +37,7 @@ form {
   margin-top: -20px;
 }
 .jsavcontainer {
-  background-color: #efe;
+  background-color: white;
   border: 0 none;
 }
 .jsavexercisecontrols {
@@ -98,7 +98,7 @@ form {
   width: 765px;
   height: 550px;
   border: 1px solid black;
-  background-color: #efe;
+  background-color: white;
   padding: 10px;
   overflow: hidden;
 }
@@ -109,4 +109,7 @@ form {
 
 #about {
   float: right;
+}
+#help, #about, .proHeaderTable {
+  display: none;
 }

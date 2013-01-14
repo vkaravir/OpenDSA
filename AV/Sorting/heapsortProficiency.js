@@ -108,10 +108,7 @@
     }
 
     exercise = jsav.exercise(model, init, { css: "background-color" },
-                             { feedback: "continuous",
-                               controls: $('.jsavexercisecontrols'),
-                               fixmode: "fix",
-                               fix: fixState });
+                             { controls: $('.jsavexercisecontrols') });
     exercise.reset();
         
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function () {

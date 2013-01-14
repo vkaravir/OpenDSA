@@ -3,6 +3,7 @@
   <head>
     <title>Binary Heap Insert</title>
     <link rel="stylesheet" href="../../JSAV/css/JSAV.css" type="text/css" media="screen" title="no title" charset="utf-8" />
+    <link rel="stylesheet" href="../opendsaAV.css" type="text/css" />
     <style>
     #av { width: auto;}
     .jsavoutput.jsavline { height: 20px; margin: 0 0 0 20px;}
@@ -13,12 +14,27 @@
     </style>
   </head>
   <body>
-    <div id="av">
+      <table class="proHeaderTable">
+        <tr>
+          <td class="headerLeft">
+            <input type="button" id="help" name="help" value="Help" />
+          </td>
+          <td class="headerCenter">
+          </td>
+          <td class="headerRight">
+            <input type="button" id="about" name="about" value="About" />
+            <a id="settings" class="jsavsettings" href="#">Settings</a>
+          </td>
+        </tr>
+      </table>
+      <div id="av">
+    <div class="jsavcanvas">
       <p style="margin-top:-5px">Instructions:</p>
       <p style="margin-top: -15px; padding: 10px; 10px; margin-right: 10px; border: 1px solid black">Insert the stream of keys shown on the upper-left corner into an originally empty minimum binary heap. The heap is also depicted in binary tree representation even though the implementation is an array starting from index 1 (the root node). Each record stored into Heap is represented by a key that shows its priority. You can insert a key by clicking an empty index/node and restore heap property after each insertion by making swaps. You can swap two records by first clicking one, then the other. </p>
       <div id="insert">Insert</div>
-      <p align="center" class="jsavexercisecontrols"></p>
+      <p class="jsavexercisecontrols"></p>
     </div>
+  </div>
     <script
        src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
     </script>
@@ -28,6 +44,8 @@
     <script src="../../JSAV/lib/raphael.js"></script>
     <script src="../../JSAV/build/JSAV-min.js"></script>
     <script src="../../JSAV/extras/binaryheap.js"></script>
+    <script src="../../lib/ODSA.js"></script>
+    <script src="../opendsaAV.js"></script>
     <script>
     var initData, bh,
         jsav = new JSAV("av"),
@@ -92,7 +110,7 @@
       }
       return modelbh;
     }
-    var exercise = jsav.exercise(model, init, {}/*, {feedback: "continuous"}*/);
+    var exercise = jsav.exercise(model, init, {}, {controls: $(".jsavexercisecontrols")});
     exercise.reset();
     
     function clickHandler(index) {

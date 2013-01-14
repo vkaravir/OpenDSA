@@ -330,3 +330,37 @@ function processArrayValues(upperLimit) {
     }
   });
 }(jQuery));
+
+
+
+/******** A+ submissions handling extension stuff ****/
+function getUrlParameter(name) {
+  //from http://www.netlobo.com/url_query_string_javascript.html
+  var regexS = "[\\?&]" + name + "=([^&#]*)";
+  var regex = new RegExp(regexS);
+  var results = regex.exec(window.location.href);
+  if (!results) {
+    return "";
+  } else {
+    return decodeURIComponent(results[1]);
+  }
+}
+console.log(getUrlParameter("seed"));
+JSAV.utils.rand.seedrandom(getUrlParameter("seed") || "33333333333333");
+
+var ep = JSAV._types.Exercise.prototype;
+ep.showGrade = function() {
+  this.grade();
+  var grade = this.score,
+      msg = grade.correct + " / " + grade.total + " steps correct.\n\nYour score was successfully submitted to A+.";
+  
+  $.ajax(getUrlParameter("submit_url"),
+         {type: "POST", data: { answer: this._jsondump(),
+                             points: grade.correct,
+                             maximum_points: grade.total,
+                             log: localStorage.getItem("event_data")}})
+        .done(function(data) { localStorage.setItem("event_data", []); alert(msg); })
+        .fail(function() { alert("Failed to submit your solution to A+"); });
+  this.reset = function() { location.reload(true);};
+  $('.jsavexercisecontrols input[name="grade"]').attr("disabled", "disabled");
+};

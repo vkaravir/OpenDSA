@@ -1,10 +1,15 @@
 #container {
-  width: 800px;
-  height: 555px;
+  width: 98%;
+  height: 98%;
+  margin: 0 auto;
 }
 
 #decrement {
   margin-right: 20px;
+  display: inline-block;
+}
+.jsavexercisecontrols {
+  display: inline-block;
 }
 
 .jsavtree {
