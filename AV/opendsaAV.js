@@ -345,7 +345,6 @@ function getUrlParameter(name) {
     return decodeURIComponent(results[1]);
   }
 }
-console.log(getUrlParameter("seed"));
 JSAV.utils.rand.seedrandom(getUrlParameter("seed") || "33333333333333");
 
 var ep = JSAV._types.Exercise.prototype;
