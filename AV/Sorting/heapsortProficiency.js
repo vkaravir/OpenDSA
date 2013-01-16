@@ -96,6 +96,7 @@
         jsav.step();
       } else { // second click will swap
         bh.swap(sIndex, index, {});
+        jsav.logEvent({type: "jsav-heap-swap", arrayid: bh.id(), index1: sIndex, index2: index});
         bh.css([sIndex, index], {"font-size": "100%"});
         swapIndex.value(-1);
         exercise.gradeableStep();
@@ -113,10 +114,12 @@
         
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function () {
       var index = $(this).parent(".jsavarray").find(".jsavindex").index(this);
+      jsav.logEvent({type: "jsav-array-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $(".jsavcontainer").on("click", ".jsavbinarytree .jsavbinarynode", function () {
       var index = $(this).data("jsav-heap-index") - 1;
+      jsav.logEvent({type: "jsav-heaptree-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $("#decrement").click(function () {

@@ -346,20 +346,52 @@ function getUrlParameter(name) {
   }
 }
 JSAV.utils.rand.seedrandom(getUrlParameter("seed") || "33333333333333");
-
+console.log($(".jsavexercisecontrols input"));
 var ep = JSAV._types.Exercise.prototype;
+ep.origmodel = ep.showModelanswer;
+ep.showModelanswer = function() {
+  var that = this;
+  console.log("MODEL URL", getUrlParameter("model_url"));
+  $.ajax(getUrlParameter("model_url"),
+          {type: "POST", data: { answer: this._jsondump(),
+                                log: localStorage.getItem("event_data") }})
+        .done(function(data) {
+          localStorage.setItem("event_data", []);
+          that.origmodel();
+        });
+  $('.jsavexercisecontrols input[name="grade"]').attr("disabled", "disabled");
+};
+ep.origreset = ep.reset;
+ep.reset = function() {
+  if (!this.initialStructures) {
+    this.origreset();
+  } else {
+    $.get(getUrlParameter("reset_url"), function(data) {
+      window.parent.postMessage(JSON.stringify({ type: "reset", "reset_url": data }), "*");
+    });
+  }
+};
 ep.showGrade = function() {
   this.grade();
   var grade = this.score,
-      msg = grade.correct + " / " + grade.total + " steps correct.\n\nYour score was successfully submitted to A+.";
+      msg = grade.correct + " / " + grade.total + " steps correct.\n\n";
   
   $.ajax(getUrlParameter("submit_url"),
          {type: "POST", data: { answer: this._jsondump(),
                              points: grade.correct,
                              maximum_points: grade.total,
-                             log: localStorage.getItem("event_data")}})
-        .done(function(data) { localStorage.setItem("event_data", []); alert(msg); })
+                             log: localStorage.getItem("event_data"),
+                             checksum: getUrlParameter("checksum")}})
+        .done(function(data) { 
+          console.log("SUBMIT RESPONSE:", data);
+          localStorage.setItem("event_data", []); 
+          if (data.status === "OK") {
+            msg += "Your score was successfully submitted to A+.";
+          } else {
+            msg += "Error submitting your score to A+: " + data.message;
+          }
+          alert(msg); 
+        })
         .fail(function() { alert("Failed to submit your solution to A+"); });
-  this.reset = function() { location.reload(true);};
   $('.jsavexercisecontrols input[name="grade"]').attr("disabled", "disabled");
 };
