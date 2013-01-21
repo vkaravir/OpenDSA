@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="../opendsaAV.css" type="text/css" />
     <style>
     #av { width: auto;}
-    .jsavoutput.jsavline { height: 20px; margin: 0 0 0 20px;}
     .jsavcontrols a { margin-left: 0;}
     #decrement { margin-right: 20px;}
+    .jsavline { height: 45px; margin: 0 0 0 20px; }
     </style>
   </head>
   <body>
@@ -91,17 +91,28 @@
       modeljsav._undo = [];
       var count = 3;
       while (count > 0) {
+        if (count === 3) {
+          modeljsav.umsg("We start by swapping smallest (first) and last items in heap.");
+          modeljsav.step();
+        } else if (count === 2) {
+          modeljsav.umsg("Again, we swap smallest and last items in heap.");
+        } else {
+          modeljsav.umsg("...swap smallest and last items in heap.");
+        }
         modelbh.swap(0, modelbh.heapsize() - 1);
         modelbh.element.attr("data-jsav-heap-size", modelbh.heapsize() - 1);
         modeljsav.step();
 
+        modeljsav.umsg("<br/>...decrement the heap size", {preserve: true});
         modelbh.css(modelbh.heapsize(), {"opacity": "0"})
         modelbh._treenodes[modelbh.heapsize()].edgeToParent().css("stroke", "white");
         modeljsav.stepOption("grade", true);
         modeljsav.step();
+        modeljsav.umsg("<br/>...and restore the heap property", {preserve: true});
         modelbh.heapify(1);
         count--;
       }
+      modeljsav.umsg("");
       return modelbh;
     }
     var exercise = jsav.exercise(model, init, {css: "opacity"}, { modelDialog: {width: "95%"} });
@@ -121,26 +132,30 @@
       } else { // second click will swap
         bh.swap(sIndex, index, {});
         bh.css([sIndex, index], {"font-size": "100%"});
+        jsav.logEvent({type: "jsav-heap-swap", arrayid: bh.id(), index1: sIndex, index2: index});
         swapIndex.value(-1);
         exercise.gradeableStep();
       }
     }
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function() {
       var index = $(this).parent(".jsavarray").find(".jsavindex").index(this);
+      jsav.logEvent({type: "jsav-heaparray-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $(".jsavcontainer").on("click", ".jsavbinarytree .jsavbinarynode", function() {
       var index = $(this).data("jsav-heap-index") - 1;
+      jsav.logEvent({type: "jsav-heaptree-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $("#decrement").click(function() {
-        bh.heapsize(bh.heapsize() - 1);
-        bh.css(bh.heapsize(), {"opacity": "0"});
-        bh._treenodes[bh.heapsize()].edgeToParent().css("stroke", "white");
-        if (swapIndex.value() !== -1) {
-          swapIndex.value(-1);
-        }
-        exercise.gradeableStep();
+      bh.heapsize(bh.heapsize() - 1);
+      bh.css(bh.heapsize(), {"opacity": "0"});
+      bh._treenodes[bh.heapsize()].edgeToParent().css("stroke", "white");
+      jsav.logEvent({type: "jsav-heap-decrement", newSize: bh.heapsize()});
+      if (swapIndex.value() !== -1) {
+        swapIndex.value(-1);
+      }
+      exercise.gradeableStep();
     });
     </script>
   </body>

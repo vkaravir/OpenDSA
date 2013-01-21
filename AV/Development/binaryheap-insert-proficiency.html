@@ -112,6 +112,7 @@
       jsav._redo = []; // clear the forward stack, should add a method for this in lib
       if (bh.value(index) === "") {
         var inspos = insertPos.value();
+        jsav.logEvent({type: "jsav-heap-insert", arrayid: bh.id(), insertPos: inspos, value: insertValue.value(), index: index});
         if (inspos < insertData.length) {
           bh.value(index, insertData[inspos]);
           insertPos.value(inspos + 1);
@@ -129,19 +130,26 @@
         bh.css(index, {"font-size": "145%"});
         swapIndex.value(index);
         jsav.step();
+      } else if (sIndex === index) {
+        bh.css(index, {"font-size": "100%"});
+        swapIndex.value(-1);
+        jsav.step();
       } else { // second click will swap
         bh.swap(sIndex, index, {});
         bh.css([sIndex, index], {"font-size": "100%"});
+        jsav.logEvent({type: "jsav-heap-swap", arrayid: bh.id(), index1: sIndex, index2: index});
         swapIndex.value(-1);
         exercise.gradeableStep();
       }
     }
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function() {
       var index = $(this).parent(".jsavarray").find(".jsavindex").index(this);
+      jsav.logEvent({type: "jsav-heaparray-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $(".jsavcontainer").on("click", ".jsavbinarytree .jsavbinarynode", function() {
       var index = $(this).data("jsav-heap-index") - 1;
+      jsav.logEvent({type: "jsav-heaptree-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     </script>

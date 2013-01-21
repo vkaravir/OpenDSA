@@ -115,7 +115,7 @@
         
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function () {
       var index = $(this).parent(".jsavarray").find(".jsavindex").index(this);
-      jsav.logEvent({type: "jsav-array-click", arrayid: bh.id(), index: index});
+      jsav.logEvent({type: "jsav-heaparray-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     $(".jsavcontainer").on("click", ".jsavbinarytree .jsavbinarynode", function () {
@@ -129,6 +129,7 @@
         return;
       }
       bh.heapsize(bh.heapsize() - 1);
+      jsav.logEvent({type: "jsav-heap-decrement", newSize: bh.heapsize()});
       bh.css(bh.heapsize(), {"background-color": "#ddd"});
       exercise.gradeableStep();
     });

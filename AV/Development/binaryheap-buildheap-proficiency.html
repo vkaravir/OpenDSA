@@ -96,15 +96,18 @@
       } else { // second click will swap
         bh.swap(sIndex, index, {});
         bh.css([sIndex, index], {"font-size": "100%"});
+        jsav.logEvent({type: "jsav-heap-swap", arrayid: bh.id(), index1: sIndex, index2: index});
         swapIndex.value(-1);
         exercise.gradeableStep();
       }
     }
     $(".jsavcontainer").on("click", ".jsavindex", function() {
       var index = $(this).parent(".jsavarray").find(".jsavindex").index(this);
+      jsav.logEvent({type: "jsav-heaparray-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     }).on("click", ".jsavbinarynode", function() {
       var index = $(this).data("jsav-heap-index") - 1;
+      jsav.logEvent({type: "jsav-heaptree-click", arrayid: bh.id(), index: index});
       clickHandler(index);
     });
     </script>
