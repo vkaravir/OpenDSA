@@ -334,17 +334,6 @@ function processArrayValues(upperLimit) {
 
 
 /******** A+ submissions handling extension stuff ****/
-function getUrlParameter(name) {
-  //from http://www.netlobo.com/url_query_string_javascript.html
-  var regexS = "[\\?&]" + name + "=([^&#]*)";
-  var regex = new RegExp(regexS);
-  var results = regex.exec(window.location.href);
-  if (!results) {
-    return "";
-  } else {
-    return decodeURIComponent(results[1]);
-  }
-}
 JSAV.utils.rand.seedrandom(getUrlParameter("seed") || "33333333333333");
 console.log($(".jsavexercisecontrols input"));
 var ep = JSAV._types.Exercise.prototype;
