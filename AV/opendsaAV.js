@@ -335,12 +335,10 @@ function processArrayValues(upperLimit) {
 
 /******** A+ submissions handling extension stuff ****/
 JSAV.utils.rand.seedrandom(getUrlParameter("seed") || "33333333333333");
-console.log($(".jsavexercisecontrols input"));
 var ep = JSAV._types.Exercise.prototype;
 ep.origmodel = ep.showModelanswer;
 ep.showModelanswer = function() {
   var that = this;
-  console.log("MODEL URL", getUrlParameter("model_url"));
   $.ajax(getUrlParameter("model_url"),
           {type: "POST", data: { answer: this._jsondump(),
                                 log: localStorage.getItem("event_data") }})
@@ -362,6 +360,7 @@ ep.reset = function() {
 };
 ep.showGrade = function() {
   this.grade();
+  this.jsav.logEvent({type: "jsav-exercise-grade-button", score: $.extend({}, this.score)});
   var grade = this.score,
       msg = grade.correct + " / " + grade.total + " steps correct.\n\n";
   
