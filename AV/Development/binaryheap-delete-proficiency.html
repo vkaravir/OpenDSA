@@ -12,21 +12,20 @@
     </style>
   </head>
   <body>
-    <table class="proHeaderTable">
-      <tr>
-        <td class="headerLeft">
-          <input type="button" id="help" name="help" value="Help" />
-        </td>
-        <td class="headerRight">
-          <input type="button" id="about" name="about" value="About" />
-          <a id="settings" class="jsavsettings" href="#">Settings</a>
-        </td>
-      </tr>
-    </table>
-    <div id="av">
-      <p style="margin-top:-5px">Instructions:</p>
-      <p style="margin-top: -15px; padding: 10px; 10px; margin-right: 10px; border: 1px solid black">Perform DeleteMin three times, and after each deletion, restore heap property. For each record stored into heap you can see a key that corresponds to the priority. "Decrement heap size" -button will delete the last key of the heap. In addition, by first clicking one key and then another, you can swap the records. </p>
-      <p align="center" class="jsavexercisecontrols"><input id="decrement" type="button" value="Decrement heapsize" /></p>
+    <div id="container">
+      <form class="avcontainer">
+        <div class="jsavcanvas">
+          <p class="instructLabel">Instructions:</p>
+          <p class="instructions">
+            Perform DeleteMin three times, and after each deletion, restore heap property. For each record stored into heap you can see a key that corresponds to the priority. <br/><br/>"Decrement heap size" -button will delete the last key of the heap. In addition, by first clicking one key and then another, you can swap the records.
+          </p>
+          <p align="center">
+            <input id="decrement" type="button" value="Decrement heap size"/>
+            <span class="jsavexercisecontrols"></span>
+            <span class="jsavscore"></span>
+          </p>
+        </div>
+      </form>
     </div>
     
     <script
@@ -42,7 +41,7 @@
 
     <script>
     var initData, bh,
-        jsav = new JSAV("av"),
+        jsav = new JSAV($(".avcontainer")),
         swapIndex;
 
     jsav.recorded();
@@ -105,7 +104,7 @@
       }
       return modelbh;
     }
-    var exercise = jsav.exercise(model, init, {css: "opacity"}/*, {feedback: "continuous"}*/);
+    var exercise = jsav.exercise(model, init, {css: "opacity"}, { modelDialog: {width: "95%"} });
     exercise.reset();
     
     function clickHandler(index) {

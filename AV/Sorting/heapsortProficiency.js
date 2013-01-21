@@ -109,7 +109,8 @@
     }
 
     exercise = jsav.exercise(model, init, { css: "background-color" },
-                             { controls: $('.jsavexercisecontrols') });
+                             { controls: $('.jsavexercisecontrols'),
+                               modelDialog: {width: "95%"} });
     exercise.reset();
         
     $(".jsavcontainer").on("click", ".jsavarray .jsavindex", function () {
