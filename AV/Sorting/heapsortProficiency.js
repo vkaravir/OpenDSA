@@ -10,7 +10,7 @@
 
     jsav.recorded();
     function init() {
-      var nodeNum = 10;
+      var nodeNum = 15;
       if (bh) {
         bh.clear();
       }
