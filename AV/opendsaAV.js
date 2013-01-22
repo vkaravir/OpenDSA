@@ -339,12 +339,14 @@ var ep = JSAV._types.Exercise.prototype;
 ep.origmodel = ep.showModelanswer;
 ep.showModelanswer = function() {
   var that = this;
+  $('.jsavexercisecontrols').addClass("actiivi");
   $.ajax(getUrlParameter("model_url"),
           {type: "POST", data: { answer: this._jsondump(),
                                 log: localStorage.getItem("event_data") }})
         .done(function(data) {
           localStorage.setItem("event_data", []);
           that.origmodel();
+          $('.jsavexercisecontrols').removeClass("actiivi");
         });
   $('.jsavexercisecontrols input[name="grade"]').attr("disabled", "disabled");
 };
@@ -359,6 +361,8 @@ ep.reset = function() {
   }
 };
 ep.showGrade = function() {
+  $('.jsavexercisecontrols').addClass("actiivi");
+  console.log("Adding", $('.jsavexercisecontrols').hasClass("actiivi"));
   this.grade();
   this.jsav.logEvent({type: "jsav-exercise-grade-button", score: $.extend({}, this.score)});
   var grade = this.score,
@@ -372,13 +376,15 @@ ep.showGrade = function() {
                              checksum: getUrlParameter("checksum")}})
         .done(function(data) { 
           console.log("SUBMIT RESPONSE:", data);
-          localStorage.setItem("event_data", []); 
+          localStorage.setItem("event_data", []);
           if (data.status === "OK") {
             msg += "Your score was successfully submitted to A+.";
           } else {
             msg += "Error submitting your score to A+: " + data.message;
           }
-          alert(msg); 
+          alert(msg);
+          $('.jsavexercisecontrols').removeClass("actiivi");
+          console.log("Removing", $('.jsavexercisecontrols').hasClass("actiivi"));
         })
         .fail(function() { alert("Failed to submit your solution to A+"); });
   $('.jsavexercisecontrols input[name="grade"]').attr("disabled", "disabled");

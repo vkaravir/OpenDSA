@@ -110,3 +110,9 @@ form {
 #help, #about, .proHeaderTable {
   display: none;
 }
+.jsavexercisecontrols.actiivi .actionIndicator {
+  background-image: url('../JSAV/css/images/spinner.gif');
+}
+#credit_disabled_msg {
+  padding-left: 20px;
+}
