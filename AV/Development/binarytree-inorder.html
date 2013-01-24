@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Binary Tree Preorder Traversal</title>
+    <title>Binary Tree Inorder Traversal</title>
     <link rel="stylesheet" href="../../JSAV/css/JSAV.css" type="text/css" charset="utf-8" />
     <link rel="stylesheet" href="../opendsaAV.css" type="text/css" />
     <style>
@@ -13,7 +13,7 @@
     </style>
   </head>
   <body>
-    <div id="BinTreePreorderProficiency_container" class="container">
+    <div id="BinTreeInorderProficiency_container" class="container">
       <table class="headerTable">
         <tr>
           <td class="headerLeft">&nbsp;</td>
@@ -27,11 +27,11 @@
           </td>
         </tr>
       </table>
-      <form class="avcontainer">
+      <form id="bintreeInorderProficiency_avc">
         <div class="jsavcanvas">
           <p class="instructLabel">Instructions:</p>
           <p class="instructions">
-            Reproduce the behavior of binary tree preorder traversal. Click nodes to indicate the order in
+            Reproduce the behavior of binary tree inorder traversal. Click nodes to indicate the order in
             which the traversal algorithm would visit them.
           </p>
           <p align="center">
@@ -86,7 +86,7 @@
       return this;
     };
     var initData, bt,
-        jsav = new JSAV(avcId);
+        jsav = new JSAV("bintreeInorderProficiency_avc");
     jsav.recorded();
     function init() {
       var nodeNum = 9;
@@ -126,20 +126,20 @@
       modelBst.layout();
       modeljsav.clear();
       i = 0;
-      var preorderNode = function(node) {
+      var inorderNode = function(node) {
+        if (node.left()) {
+          inorderNode(node.left());
+        }
         node.highlight();
         modeljsav.label(i, {relativeTo: node, visible: true, anchor: "right top"});
-        i++;
         modeljsav.stepOption("grade", true);
         modeljsav.step();
-        if (node.left()) {
-          preorderNode(node.left());
-        }
+        i++;
         if (node.right()) {
-          preorderNode(node.right());
+          inorderNode(node.right());
         }
       }
-      preorderNode(modelBst.root());
+      inorderNode(modelBst.root());
       return modelBst;
     }
     var exercise = jsav.exercise(model, init, {"css": "background-color"}, { 

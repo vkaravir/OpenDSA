@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Binary Tree Preorder Traversal</title>
+    <title>Binary Tree Levelorder Traversal</title>
     <link rel="stylesheet" href="../../JSAV/css/JSAV.css" type="text/css" charset="utf-8" />
     <link rel="stylesheet" href="../opendsaAV.css" type="text/css" />
     <style>
@@ -13,7 +13,7 @@
     </style>
   </head>
   <body>
-    <div id="BinTreePreorderProficiency_container" class="container">
+    <div id="BinTreeLevelProficiency_container" class="container">
       <table class="headerTable">
         <tr>
           <td class="headerLeft">&nbsp;</td>
@@ -27,11 +27,11 @@
           </td>
         </tr>
       </table>
-      <form class="avcontainer">
+      <form id="bintreeLevelProficiency_avc">
         <div class="jsavcanvas">
           <p class="instructLabel">Instructions:</p>
           <p class="instructions">
-            Reproduce the behavior of binary tree preorder traversal. Click nodes to indicate the order in
+            Reproduce the behavior of binary tree level order traversal. Click nodes to indicate the order in
             which the traversal algorithm would visit them.
           </p>
           <p align="center">
@@ -86,7 +86,7 @@
       return this;
     };
     var initData, bt,
-        jsav = new JSAV(avcId);
+        jsav = new JSAV("bintreeLevelProficiency_avc");
     jsav.recorded();
     function init() {
       var nodeNum = 9;
@@ -126,20 +126,22 @@
       modelBst.layout();
       modeljsav.clear();
       i = 0;
-      var preorderNode = function(node) {
-        node.highlight();
-        modeljsav.label(i, {relativeTo: node, visible: true, anchor: "right top"});
-        i++;
+      var queue = [modelBst.root()],
+          curr;
+      while (queue.length > 0) {
+        curr = queue.shift();
+        curr.highlight();
+        modeljsav.label(i, {relativeTo: curr, visible: true, anchor: "right top"});
         modeljsav.stepOption("grade", true);
         modeljsav.step();
-        if (node.left()) {
-          preorderNode(node.left());
+        i++;
+        if (curr.left()) {
+          queue.push(curr.left());
         }
-        if (node.right()) {
-          preorderNode(node.right());
+        if (curr.right()) {
+          queue.push(curr.right());
         }
       }
-      preorderNode(modelBst.root());
       return modelBst;
     }
     var exercise = jsav.exercise(model, init, {"css": "background-color"}, { 
