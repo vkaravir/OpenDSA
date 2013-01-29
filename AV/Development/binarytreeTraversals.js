@@ -106,6 +106,36 @@
       }
     }
   };
+  JSAV._types.ds.BinaryTree.prototype.state = function(newState) {
+    var state,
+        i,
+        queue = [this.root()],
+        curr;
+    if (typeof newState === "undefined") {
+      state = [];
+      while (queue.length > 0) {
+        curr = queue.shift();
+        state.push(curr.isHighlight());
+        if (curr.left()) { queue.push(curr.left()); }
+        if (curr.right()) { queue.push(curr.right()); }
+      }
+      return state;
+    } else {
+      i = 0;
+      while (queue.length > 0) {
+        curr = queue.shift();
+        if (newState[i] && !curr.isHighlight()) {
+          curr.highlight();
+        } else if (!newState[i] && curr.isHighlight()) {
+          curr.unhighlight();
+        }
+        i++;
+        if (curr.left()) { queue.push(curr.left()); }
+        if (curr.right()) { queue.push(curr.right()); }
+      }
+      return this;
+    }
+  };
 
     
   var modelWrapper = function(tt) {
