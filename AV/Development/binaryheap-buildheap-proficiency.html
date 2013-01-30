@@ -34,9 +34,350 @@
     <script src="../../JSAV/lib/raphael.js"></script>
     <script src="../../JSAV/build/JSAV-min.js"></script>
     <script src="../../JSAV/extras/binaryheap.js"></script>
+    <script src="misconceptions.js"></script>
     <script src="../../lib/ODSA.js"></script>
     <script src="../opendsaAV.js"></script>
     <script>
+   /**** BEGIN MISCONCEPTION STUFF ****/
+(function() {
+   var variantTree = false;
+   var getHeap = function(modeljsav, heapOptions) {
+      var modelbh = modeljsav.ds.binheap(initData, heapOptions);
+      modelbh.normalswap = modelbh.swap;
+      // modify the heap to record every swap as a separate gradable step
+      modelbh.swap = function(index1, index2, options) {
+        this.normalswap(index1, index2, options);
+        modeljsav.stepOption("grade", true);
+        modeljsav.step();
+      };
+      modelbh.heapify = function(pos, t) {
+      var size = this.heapsize(),
+          lpos = pos * 2,
+          rpos = pos * 2 + 1,
+          smallest = pos,
+          comp = this.options.compare;
+      if (lpos <= size && comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+        smallest = lpos;
+      }
+      if (rpos <= size && comp(this.value(rpos - 1), this.value(smallest - 1)) < 0) {
+        smallest = rpos;
+      }
+      var topic = t || [];
+      if (smallest !== pos) {
+        if (this.options.stats) {
+          this.stats.swaps++;
+          if (smallest == lpos) { this.stats.leftswaps++; topic.unshift("leftswap"); }
+          else { this.stats.rightswaps++; topic.unshift("rightswap"); }
+        }
+        topic.unshift("swap");
+        this.jsav.stepOption("topic", topic);
+        this.swap(smallest - 1, pos - 1);
+        topic = [];
+        if (this.heapify(smallest, topic) && this.options.stats) {
+          this.stats.recursiveswaps++;
+          topic.unshift("recursiveswap");
+        } else if (this.options.stats) {
+          this.stats.partlyrecursiveswaps++;
+          topic.unshift("partlyrecursiveswap");
+        }
+        //console.log(topic);
+        return true;
+      } else if (this.options.stats) {
+        this.stats.interrupted = true;
+        topic.unshift("interrupted");
+      }
+      //console.log(topic);
+      return false;
+    };
+    modeljsav._undo = [];
+      return modelbh;
+    };
+
+    var makeMisconception = function(noRecursion, swapBoth, rightLeft, fixLevelWise) {
+      return function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats: false, nodegap: 20, tree: variantTree});
+        if (noRecursion || swapBoth || rightLeft) {
+          modelbh.heapify = function(pos) {
+            var size = this.heapsize(),
+                lpos = pos * 2,
+                rpos = pos * 2 + 1,
+                smallest = pos,
+                comp = this.options.compare;
+            if (pos <= 0 || lpos > size) { return; }
+            if (rpos > size) {
+              if (comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+                this.swap(lpos - 1, pos - 1);
+              }
+              return;
+            }
+            if (comp(this.value(lpos - 1), this.value(rpos - 1)) < 0) {
+              if (swapBoth && comp(this.value(rpos - 1), this.value(pos - 1)) < 0 && rightLeft) {
+                this.swap(pos - 1, rpos - 1);
+                if (!noRecursion) {
+                  this.heapify(rpos);
+                }
+              }
+
+              if(comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+                this.swap(pos - 1, lpos - 1);
+                if (!noRecursion) {
+                  this.heapify(lpos);
+                }
+              }
+            } else {
+              if (swapBoth && comp(this.value(lpos - 1), this.value(pos - 1)) < 0 && !rightLeft) {
+                this.swap(pos - 1, lpos - 1);
+                if (!noRecursion) {
+                  this.heapify(lpos);
+                }
+              }
+
+
+              if(comp(this.value(rpos - 1), this.value(pos - 1)) < 0) {
+                this.swap(pos - 1, rpos - 1);
+                if (!noRecursion) {
+                  this.heapify(rpos);
+                }
+              }
+
+            }
+          };
+        }
+        var restartLevel = Math.floor(modelbh.size() / 4);
+
+        var fixRounds = 3;
+
+        for (var i = Math.floor(modelbh.size()/2); i>0; i--) {
+          if ((i == restartLevel - 1 || (i == 0 && fixRounds > 0)) && fixLevelWise){
+
+            if (restartLevel > 0) {//XXX Checkme
+              restartLevel = Math.floor(restartLevel / 2);
+            } else {
+              restartLevel = Math.floor(modelbh.size() / 4);
+              fixRounds--;
+
+              modelbh.heapify(1);
+            }
+
+            i = Math.floor(modelbh.size()/2);
+            continue;
+          }
+          modelbh.heapify(i);
+        }
+        return modelbh;
+      };
+    };
+
+
+    var percolateUp = function(percolateMode) {
+      return function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats: false, nodegap: 20, tree: variantTree});
+
+        modelbh.swapSmallest = function(index) {
+          var smallerChild = this.findSmallest(index);
+          if (smallerChild !== index) {
+            this.swap(index - 1, smallerChild - 1);
+          }
+        };
+        modelbh.findSmallest = function(pos) {
+          var size = this.heapsize(),
+              lpos = pos * 2,
+              rpos = pos * 2 + 1,
+              smallest = pos,
+              comp = this.options.compare;
+          if (pos > size || pos <= 0) {
+            return;
+          }
+          if (lpos > size && rpos > size) {
+            return pos;
+          }
+          var smallRight = this.findSmallest(rpos);
+          var smallLeft  = this.findSmallest(lpos);
+          //console.log("left", smallLeft, "right", smallRight);
+          var smallerChild;
+          if (!smallRight) { 
+            smallerChild = smallLeft; 
+          } else {
+            smallerChild = (comp(this.value(smallLeft - 1), this.value(smallRight - 1)) < 0)?smallLeft:smallRight;
+          }
+          //console.log("smaller child of", pos, "is", (comp(this.value(smallerChild - 1), this.value(pos - 1)) < 0)?smallerChild:pos);
+          return (comp(this.value(smallerChild - 1), this.value(pos - 1)) < 0)?smallerChild:pos;
+        };
+        modelbh.heapify = function(pos) {
+          var size = this.heapsize(),
+              lpos = pos * 2,
+              rpos = pos * 2 + 1,
+              smallest = pos,
+              comp = this.options.compare;
+          if (pos > size || (lpos > size && rpos > size)) {
+            return;
+          }
+          if(rpos > size) {
+            if (comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+              this.swap(lpos - 1, pos - 1);
+            }
+            return;
+          }
+          if (comp(this.value(lpos - 1), this.value(rpos - 1)) < 0) {
+            if (comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+              this.swap(pos - 1, lpos - 1);
+            }
+          } else if (comp(this.value(rpos - 1), this.value(pos - 1)) < 0) {
+            this.swap(pos - 1, rpos - 1);
+          }
+        };
+
+
+        var stopLevel = Math.floor(modelbh.heapsize()/2);
+
+        if (percolateMode) {
+          for (var i = 1; i <= stopLevel; i++) {
+            modelbh.swapSmallest(i);
+          }
+        } else {
+          for (var j = 1; j < 6; j++) { 
+            for (var i = stopLevel; i > 0; i--) {        
+              modelbh.heapify(i);
+            }
+          }
+        }
+        return modelbh;
+      };
+    }
+
+    var misconceptionVariants = {
+      "modifiedModel": function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:true, nodegap: 20, tree: variantTree});
+        modeljsav._undo = [];
+        for (var i = Math.floor(modelbh.size() / 2); i > 0; i--) {
+          modelbh.heapify(i);
+        }
+        return modelbh;
+      },
+      "maxHeap": function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:false, nodegap: 20,
+                                         compare: function(a, b) { return b - a;}, tree: variantTree});
+        modeljsav._undo = [];
+        for (var i = Math.floor(modelbh.size() / 2); i > 0; i--) {
+          //modeljsav.step();
+          modelbh.heapify(i);
+          //modeljsav.stepOption("grade", true);
+        }
+        return modelbh;
+      },
+      "topDown": function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:false, nodegap: 20, tree: variantTree});
+        modeljsav._undo = [];
+        for (var i = 1; i <= Math.floor(modelbh.size()/2); i++) {
+          //modeljsav.step();
+          modelbh.heapify(i);
+          //modeljsav.stepOption("grade", true);
+        }
+        return modelbh;
+      },
+      "leftToRight": function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:false, nodegap: 20, tree: variantTree});
+        modeljsav._undo = [];
+        var order = [4, 5, 2, 3, 1]; /// XXX: specific for this size of heap!
+        for (var i = 0; i < order.length; i++) {
+//          modeljsav.step();
+          modelbh.heapify(order[i]);
+//          modeljsav.stepOption("grade", true);
+        }
+        return modelbh;
+      },
+      "wrongDuplicate": function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:false, nodegap: 20, tree: variantTree});
+         modelbh.heapify = function(pos, t) {
+          var size = this.heapsize(),
+              lpos = pos * 2,
+              rpos = pos * 2 + 1,
+              smallest = pos,
+              comp = this.options.compare;
+          if (lpos <= size && comp(this.value(lpos - 1), this.value(pos - 1)) < 0) {
+            smallest = lpos;
+          }
+          if (rpos <= size && comp(this.value(rpos - 1), this.value(smallest - 1)) <= 0) {
+            smallest = rpos;
+          }
+          var topic = t || [];
+          if (smallest !== pos) {
+            if (this.options.stats) {
+              this.stats.swaps++;
+              if (smallest == lpos) { this.stats.leftswaps++; topic.unshift("leftswap"); }
+              else { this.stats.rightswaps++; topic.unshift("rightswap"); }
+            }
+            topic.unshift("swap");
+            this.jsav.stepOption("topic", topic);
+            this.swap(smallest - 1, pos - 1);
+            topic = [];
+            if (this.heapify(smallest, topic) && this.options.stats) {
+              this.stats.recursiveswaps++;
+              topic.unshift("recursiveswap");
+            } else if (this.options.stats) {
+              this.stats.partlyrecursiveswaps++;
+              topic.unshift("partlyrecursiveswap");
+            }
+            //console.log(topic);
+            return true;
+          } else if (this.options.stats) {
+            this.stats.interrupted = true;
+            topic.unshift("interrupted");
+          }
+          //console.log(topic);
+          return false;
+        };
+        modeljsav._undo = [];
+        for (var i = Math.floor(modelbh.size() / 2); i > 0; i--) {
+          //modeljsav.step();
+          modelbh.heapify(i);
+          //modeljsav.stepOption("grade", true);
+        }
+        return modelbh;
+       },
+      "noRecursion": makeMisconception(true,  false, false, false),
+      "SwapBoth": makeMisconception(false, true,  false, false),
+      "NorecSwapBoth": makeMisconception(true,  true,  false, false),
+      "BothRL": makeMisconception(false, true,  true , false),
+      "BothRLNorec": makeMisconception(true,  true,  true , false),
+
+      "NorecFixLvl": makeMisconception(true,  false, false, true),
+      "RLNorecFixLvl": makeMisconception(true,  true,  true , true),
+      "SmallestInstantlyUp": percolateUp(true),
+      "IterativeFixRecursion": percolateUp(false)
+    };
+    function skip(skipWhich) {
+      var skipModel = function(modeljsav) {
+        var modelbh = getHeap(modeljsav, {heapify: false, stats:false, nodegap: 20, tree: variantTree});
+        modelbh.modswap = modelbh.swap;
+        modelbh.normalheapify = modelbh.heapify;
+        var counter = 0;
+        modelbh.swap = function(index1, index2, options) {
+          counter++;
+          if (counter !== skipWhich) {
+            this.modswap(index1, index2, options);
+          }
+        };
+        modeljsav._undo = [];
+        for (var i = Math.floor(modelbh.size() / 2); i > 0; i--) {
+          modelbh.heapify(i);
+        }
+        return modelbh;
+      }
+      return skipModel;
+    }
+    for (var i = 0; i < 11; i++) {
+      misconceptionVariants["skip-" + i] = skip(i);
+    }
+
+    window.misconceptionVariants = misconceptionVariants;
+})();
+    /**** END MISCONCEPTION STUFF ****/
+
+
+
+
+
     var initData, bh,
         jsav = new JSAV($(".avcontainer")),
         swapIndex;
@@ -48,14 +389,40 @@
         bh.clear();
       }
      $.fx.off = true;
+     var testedMisconceptions = [misconceptionVariants["topDown"],
+                                misconceptionVariants["leftToRight"],
+                                //misconceptionVariants["wrongDuplicate"],
+                                //misconceptionVariants["noRecursion"],
+                                misconceptionVariants["SwapBoth"],
+                                misconceptionVariants["NorecSwapBoth"],
+                                misconceptionVariants["BothRL"],
+                                misconceptionVariants["BothRLNorec"],
+                                misconceptionVariants["NorecFixLvl"],
+                                misconceptionVariants["RLNorecFixLvl"],
+                                misconceptionVariants["SmallestInstantlyUp"],
+                                misconceptionVariants["IterativeFixRecursion"]];
+     var minValueInHeap = 15;
      var test = function(data) {
-        bh = jsav.ds.binheap(data, {size: nodeNum, stats: true, tree: false});
+        // modify the data to make sure wrongDuplicate is revealed
+        var pos = JSAV.utils.rand.numKey(2, 4),
+            randMin = minValueInHeap - JSAV.utils.rand.numKey(1, 6);
+        data[pos*2*2 - 1] = randMin; // left - left child of heap[pos], -1 for array indexes
+        data[pos*2 + 1 - 1] = randMin; // right child of heap[pos]
+        bh = jsav.ds.binheap(data, {size: data.length, stats: true, tree: false});
         var stats = bh.stats;
         bh.clear();
-        return (stats.swaps > 3 && stats.recursiveswaps > 0 && stats.leftswaps > 0
-                && stats.rightswaps > 0 && stats.partlyrecursiveswaps > 0);
-      };
-      initData = JSAV.utils.rand.numKeys(10, 100, nodeNum, {test: test, tries: 50});
+        // first make some basic checks
+        if (!(stats.swaps > 3 && stats.recursiveswaps > 0 && stats.leftswaps > 0
+                && stats.rightswaps > 0 && stats.partlyrecursiveswaps > 0)) {
+          // if they fail, the data-set is not valid
+          return false;
+        }
+        // if they pass, do the more heavy misconception check
+        initData = data;
+        var miscTest = exercise.testMisconceptions(exercise, testedMisconceptions);
+        return miscTest;
+       };
+      initData = JSAV.utils.rand.numKeys(minValueInHeap, 100, nodeNum, {test: test, tries: 50});
       bh = jsav.ds.binheap(initData, {heapify: false});
       swapIndex = jsav.variable(-1);
       jsav._undo = [];
